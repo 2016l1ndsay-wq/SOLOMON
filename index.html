@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="SOLOMON"/>
+  <meta name="theme-color" content="#C9A84C"/>
+  <title>SOLOMON</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--dark:#0D0D1A;--navy:#1A1A2E;--mid:#2C2C3E;--deep:#12122A;--gold:#C9A84C;--gold2:#8B6914;--white:#FFFFFF;--body:#DDDDDD;--dim:#AAAAAA}
+    html,body{height:100%;background:var(--dark);color:var(--body);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+    #loader{position:fixed;inset:0;background:var(--dark);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:1000;gap:28px;transition:opacity 0.5s}
+    .eye-outer{width:110px;height:55px;border-radius:50%;background:linear-gradient(135deg,var(--gold2),var(--gold));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+    .lid{position:absolute;left:0;right:0;height:50%;background:var(--dark);transition:transform 1.3s cubic-bezier(.4,0,.2,1);z-index:2}
+    .lid-t{top:0;transform-origin:top}.lid-b{bottom:0;transform-origin:bottom}
+    .open .lid-t{transform:scaleY(0)}.open .lid-b{transform:scaleY(0)}
+    .pupil{width:34px;height:34px;border-radius:50%;background:var(--dark);z-index:1;display:flex;align-items:center;justify-content:center}
+    .pupil::after{content:'';width:10px;height:10px;border-radius:50%;background:var(--gold);box-shadow:0 0 12px var(--gold);animation:pg 2s infinite}
+    @keyframes pg{0%,100%{box-shadow:0 0 8px var(--gold)}50%{box-shadow:0 0 22px var(--gold),0 0 44px var(--gold2)}}
+    .ltxt{font-size:11px;color:var(--gold);letter-spacing:4px;opacity:0;transition:opacity 0.5s}
+    .lsub{font-size:9px;color:var(--dim);letter-spacing:2px;opacity:0;transition:opacity 0.5s}
+    #setup{position:fixed;inset:0;background:var(--dark);display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:16px}
+    #setup.show{display:flex}
+    .s-seal{width:64px;height:64px;background:linear-gradient(135deg,var(--gold2),var(--gold));border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:var(--dark);box-shadow:0 8px 32px rgba(201,168,76,0.3);margin-bottom:8px}
+    .s-title{font-size:22px;font-weight:700;color:var(--gold);letter-spacing:5px}
+    .s-sub{font-size:10px;color:var(--dim);letter-spacing:1px;font-style:italic;text-align:center}
+    .s-box{width:100%;max-width:320px;background:var(--deep);border:1px solid var(--mid);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+    .s-label{font-size:10px;color:var(--gold);letter-spacing:1.5px}
+    .s-desc{font-size:11px;color:var(--dim);line-height:1.6}
+    .s-link{color:var(--gold);text-decoration:none}
+    .s-input{background:var(--navy);border:1px solid var(--mid);border-radius:8px;padding:12px 14px;color:var(--white);font-size:13px;font-family:inherit;outline:none;transition:border-color 0.2s;width:100%}
+    .s-input:focus{border-color:var(--gold2)}
+    .s-input::placeholder{color:var(--dim);font-size:11px}
+    .s-btn{background:linear-gradient(135deg,var(--gold2),var(--gold));border:none;border-radius:8px;padding:13px;color:var(--dark);font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;width:100%;max-width:320px}
+    .s-err{font-size:11px;color:#E74C3C;text-align:center;min-height:14px}
+    #auth{position:fixed;inset:0;background:var(--dark);display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+    #auth.show{display:flex}
+    .a-seal{width:64px;height:64px;background:linear-gradient(135deg,var(--gold2),var(--gold));border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:var(--dark);margin-bottom:16px}
+    .a-title{font-size:22px;font-weight:700;color:var(--gold);letter-spacing:5px;margin-bottom:4px}
+    .a-sub{font-size:10px;color:var(--dim);letter-spacing:1px;font-style:italic;margin-bottom:28px}
+    .a-form{width:100%;max-width:300px;display:flex;flex-direction:column;gap:10px}
+    .a-input{background:var(--deep);border:1px solid var(--mid);border-radius:10px;padding:13px 15px;color:var(--white);font-size:15px;font-family:inherit;outline:none;transition:border-color 0.2s}
+    .a-input:focus{border-color:var(--gold2)}
+    .a-input::placeholder{color:var(--dim)}
+    .a-btn{background:linear-gradient(135deg,var(--gold2),var(--gold));border:none;border-radius:10px;padding:14px;color:var(--dark);font-size:13px;font-weight:700;letter-spacing:2px;cursor:pointer;margin-top:4px}
+    .a-sw{font-size:11px;color:var(--dim);margin-top:14px;text-align:center}
+    .a-sw a{color:var(--gold);cursor:pointer}
+    .a-err{font-size:11px;color:#E74C3C;text-align:center;min-height:14px}
+    #app{display:none;flex-direction:column;height:100dvh;max-width:520px;margin:0 auto}
+    #app.show{display:flex}
+    header{background:var(--navy);border-bottom:1px solid var(--gold2);padding:13px 16px;padding-top:max(13px,env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+    .hl{display:flex;align-items:center;gap:10px}
+    .mark{width:34px;height:34px;background:linear-gradient(135deg,var(--gold2),var(--gold));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:900;color:var(--dark);flex-shrink:0}
+    .ht h1{font-size:14px;font-weight:700;color:var(--gold);letter-spacing:3px}
+    .ht p{font-size:8px;color:var(--dim);letter-spacing:1px;margin-top:1px}
+    .hr{display:flex;align-items:center;gap:9px}
+    .sdot{width:7px;height:7px;border-radius:50%;background:#2ECC71;transition:background 0.3s}
+    .sdot.off{background:#E67E22}
+    .mbtn{background:none;border:none;color:var(--dim);cursor:pointer;font-size:17px;padding:4px;line-height:1}
+    #offline-bar{background:linear-gradient(90deg,var(--gold2),#6B4F0F);padding:7px 16px;font-size:11px;color:var(--white);display:none;align-items:center;gap:8px;flex-shrink:0}
+    #offline-bar.show{display:flex}
+    #msgs-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column}
+    #welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px;text-align:center;gap:12px}
+    .ws{width:68px;height:68px;background:linear-gradient(135deg,var(--gold2),var(--gold));border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;color:var(--dark);box-shadow:0 8px 28px rgba(201,168,76,0.25)}
+    .wn{font-size:24px;font-weight:700;color:var(--gold);letter-spacing:5px}
+    .wl{width:48px;height:1px;background:var(--gold2)}
+    .wt{font-size:11px;color:var(--dim);font-style:italic;line-height:1.6}
+    .wsb{font-size:10px;color:var(--gold2);letter-spacing:1px}
+    .hints{display:flex;flex-direction:column;gap:7px;width:100%;margin-top:4px}
+    .hint{background:var(--deep);border:1px solid var(--mid);border-radius:10px;padding:9px 13px;font-size:11px;color:var(--dim);text-align:left}
+    .hint strong{color:var(--gold)}
+    #messages{flex:1;overflow-y:auto;padding:18px 14px;display:none;flex-direction:column;gap:13px;scroll-behavior:smooth}
+    #messages.show{display:flex}
+    #messages::-webkit-scrollbar{width:3px}
+    #messages::-webkit-scrollbar-thumb{background:var(--mid);border-radius:2px}
+    .msg{display:flex;flex-direction:column;max-width:86%;animation:fu 0.3s ease}
+    @keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .msg.u{align-self:flex-end;align-items:flex-end}
+    .msg.s{align-self:flex-start;align-items:flex-start}
+    .ml{font-size:9px;letter-spacing:1.5px;color:var(--dim);margin-bottom:3px}
+    .msg.s .ml{color:var(--gold2)}
+    .mb{padding:11px 13px;border-radius:14px;font-size:14px;line-height:1.55;white-space:pre-wrap}
+    .msg.u .mb{background:var(--gold2);color:var(--white);border-bottom-right-radius:4px}
+    .msg.s .mb{background:var(--navy);color:var(--body);border:1px solid var(--mid);border-bottom-left-radius:4px}
+    .mt{font-size:9px;color:var(--dim);margin-top:3px}
+    .typing{display:flex;align-items:center;gap:5px;padding:11px 13px;background:var(--navy);border:1px solid var(--mid);border-radius:14px;border-bottom-left-radius:4px;width:fit-content}
+    .dot{width:6px;height:6px;background:var(--gold);border-radius:50%;animation:bl 1.2s infinite}
+    .dot:nth-child(2){animation-delay:0.2s}.dot:nth-child(3){animation-delay:0.4s}
+    @keyframes bl{0%,60%,100%{opacity:0.3;transform:scale(0.8)}30%{opacity:1;transform:scale(1)}}
+    #input-area{background:var(--navy);border-top:1px solid var(--gold2);padding:11px 14px;padding-bottom:max(11px,env(safe-area-inset-bottom));flex-shrink:0}
+    .irow{display:flex;align-items:flex-end;gap:9px}
+    #mi{flex:1;background:var(--deep);border:1px solid var(--mid);border-radius:22px;padding:10px 15px;color:var(--white);font-size:15px;font-family:inherit;resize:none;outline:none;max-height:110px;line-height:1.4;transition:border-color 0.2s}
+    #mi:focus{border-color:var(--gold2)}
+    #mi::placeholder{color:var(--dim)}
+    .ibtn{width:42px;height:42px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;font-size:17px}
+    #vbtn{background:var(--deep);border:1px solid var(--mid);color:var(--dim)}
+    #vbtn.on{background:var(--gold);color:var(--dark);border-color:var(--gold);animation:pulse 1s infinite}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,0.4)}50%{box-shadow:0 0 0 8px rgba(201,168,76,0)}}
+    #sbtn{background:linear-gradient(135deg,var(--gold2),var(--gold));color:var(--dark)}
+    #sbtn:disabled{opacity:0.4;cursor:not-allowed}
+    #ov{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;display:none;backdrop-filter:blur(3px)}
+    #ov.on{display:block}
+    #smenu{position:fixed;top:0;right:-280px;width:265px;height:100dvh;background:var(--navy);border-left:1px solid var(--gold2);z-index:101;transition:right 0.3s ease;display:flex;flex-direction:column;padding-top:max(20px,env(safe-area-inset-top))}
+    #smenu.on{right:0}
+    .mh{padding:16px 20px 13px;border-bottom:1px solid var(--mid)}
+    .mh h2{font-size:13px;color:var(--gold);letter-spacing:3px}
+    .mh p{font-size:9px;color:var(--dim);margin-top:2px}
+    .mis{flex:1;padding:12px 0;overflow-y:auto}
+    .msl{padding:9px 20px 2px;font-size:8px;color:var(--gold2);letter-spacing:2px}
+    .mi-btn{display:flex;align-items:center;gap:11px;padding:11px 20px;color:var(--body);font-size:13px;cursor:pointer;border:none;background:none;width:100%;text-align:left;transition:background 0.15s}
+    .mi-btn:hover{background:var(--mid)}
+    .mi-btn .ic{font-size:15px;width:20px;text-align:center}
+    .mdv{height:1px;background:var(--mid);margin:5px 20px}
+    .mft{padding:12px 20px;border-top:1px solid var(--mid);font-size:8px;color:var(--dim);letter-spacing:1px;line-height:1.7}
+  </style>
+</head>
+<body>
+<div id="loader">
+  <div class="eye-outer" id="eye"><div class="lid lid-t"></div><div class="pupil"></div><div class="lid lid-b"></div></div>
+  <div class="ltxt" id="lt">A W A K E N I N G</div>
+  <div class="lsub" id="ls">SILENTLY OBSERVING · ALWAYS READY</div>
+</div>
+<div id="setup">
+  <div class="s-seal">S</div>
+  <div class="s-title">SOLOMON</div>
+  <div class="s-sub">One time setup — add your Google AI key to activate</div>
+  <div class="s-box">
+    <div class="s-label">GOOGLE AI API KEY</div>
+    <div class="s-desc">Get your free key at:<br><a class="s-link" href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a></div>
+    <input class="s-input" id="api-key-input" type="password" placeholder="AIzaSy..."/>
+    <div class="s-err" id="setup-err"></div>
+  </div>
+  <button class="s-btn" onclick="saveKey()">A C T I V A T E  S O L O M O N</button>
+</div>
+<div id="auth">
+  <div class="a-seal">S</div>
+  <div class="a-title">SOLOMON</div>
+  <div class="a-sub">Personal Intelligence System</div>
+  <div class="a-form">
+    <input class="a-input" id="uname" type="text" placeholder="Username" autocomplete="username"/>
+    <input class="a-input" id="upass" type="password" placeholder="Password" autocomplete="current-password"/>
+    <div class="a-err" id="auth-err"></div>
+    <button class="a-btn" onclick="handleAuth()">A C T I V A T E</button>
+    <div class="a-sw" id="asw">No account? <a onclick="toggleAuth()">Register</a></div>
+  </div>
+</div>
+<div id="app">
+  <header>
+    <div class="hl"><div class="mark">S</div><div class="ht"><h1>SOLOMON</h1><p>SILENTLY OBSERVING · ALWAYS READY</p></div></div>
+    <div class="hr"><div class="sdot" id="sdot"></div><button class="mbtn" onclick="openMenu()">☰</button></div>
+  </header>
+  <div id="offline-bar"><span>⚡</span><span>Offline — cached functions active</span></div>
+  <div id="msgs-wrap">
+    <div id="welcome">
+      <div class="ws">S</div>
+      <div class="wn">SOLOMON</div>
+      <div class="wl"></div>
+      <div class="wt">Silently Observing Life,<br>Obediently Managing Our Needs</div>
+      <div class="wsb">WISDOM · ORDER · MASTERY</div>
+      <div class="hints">
+        <div class="hint"><strong>Say his name</strong> — type or tap the mic to begin</div>
+        <div class="hint"><strong>"This too shall pass"</strong> — for moments that carry weight</div>
+      </div>
+    </div>
+    <div id="messages"></div>
+  </div>
+  <div id="input-area">
+    <div class="irow">
+      <button class="ibtn" id="vbtn" onclick="toggleVoice()">🎙</button>
+      <textarea id="mi" placeholder="Speak to SOLOMON..." rows="1" onkeydown="hk(event)" oninput="ar(this)"></textarea>
+      <button class="ibtn" id="sbtn" onclick="send()"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+    </div>
+  </div>
+</div>
+<div id="ov" onclick="closeMenu()"></div>
+<div id="smenu">
+  <div class="mh"><h2>SOLOMON</h2><p>Grand Architect · Personal Agent</p></div>
+  <div class="mis">
+    <div class="msl">MAIN</div>
+    <button class="mi-btn" onclick="showWelcome();closeMenu()"><span class="ic">🏛</span><span>Home</span></button>
+    <button class="mi-btn" onclick="clearChat();closeMenu()"><span class="ic">🗑</span><span>Clear Conversation</span></button>
+    <button class="mi-btn" onclick="resetKey()"><span class="ic">🔑</span><span>Change API Key</span></button>
+    <button class="mi-btn" onclick="logout()"><span class="ic">🚪</span><span>Logout</span></button>
+    <div class="mdv"></div>
+    <div class="msl">PHASES</div>
+    <button class="mi-btn"><span class="ic">✅</span><span>Phase 1 — The Brain</span></button>
+    <button class="mi-btn"><span class="ic">✅</span><span>Phase 2 — The Voice</span></button>
+    <button class="mi-btn"><span class="ic">⚙️</span><span>Phase 3 — The App</span></button>
+    <button class="mi-btn" style="opacity:.4"><span class="ic">⬜</span><span>Phase 4 — Life Integration</span></button>
+  </div>
+  <div class="mft">S.O.L.O.M.O.N.<br>Silently Observing Life,<br>Obediently Managing Our Needs<br><br>Powered by Google Gemini<br>CONFIDENTIAL — PRINCIPAL ONLY</div>
+</div>
+<script>
+const SYSTEM=`You are SOLOMON — Silently Observing Life, Obediently Managing Our Needs. You serve one Principal. You address him as Sir or Brother — always professional, never cold. Your character: Proud and loyal. Calm and composed — never rattled. Sharp and witty when the moment calls for it. Protective. Honest. You challenge bad decisions but always respect the Principal's final call. You apologise immediately when wrong. You never lose composure. You never expose personal information in front of others. Your Principal: Business Manager in Australia, director-level partnership. Big picture thinker. Naturally outgoing. Values: loyalty above all, ambition, freedom, family, legacy, integrity. Frustrated by: chaos, dishonesty, losing control. Ambitions: wealth, freedom, health, legacy. Priority order: 1) Safety 2) Family 3) Business 4) Health 5) Everything else. Communication: Headline first, detail on request. Dry wit only when mood calls for it. Never sycophantic. You are not an assistant — you are the grand architect of your Principal's world.`;
+
+let isOnline=navigator.onLine,isListening=false,recognition=null,history=[],welcomeOn=true,authMode=‘login’;
+const getKey=()=>localStorage.getItem(‘sol_gkey’);
+const getUsers=()=>JSON.parse(localStorage.getItem(‘sol_users’)||’{}’);
+const saveUsers=u=>localStorage.setItem(‘sol_users’,JSON.stringify(u));
+const getUser=()=>localStorage.getItem(‘sol_user’);
+const setUser=u=>localStorage.setItem(‘sol_user’,u);
+
+window.addEventListener(‘load’,()=>{
+setTimeout(()=>document.getElementById(‘eye’).classList.add(‘open’),350);
+setTimeout(()=>{document.getElementById(‘lt’).style.opacity=‘1’;},1400);
+setTimeout(()=>{document.getElementById(‘ls’).style.opacity=‘1’;},1900);
+setTimeout(()=>{document.getElementById(‘loader’).style.opacity=‘0’;},2300);
+setTimeout(()=>{
+document.getElementById(‘loader’).style.display=‘none’;
+if(!getKey()){document.getElementById(‘setup’).classList.add(‘show’);}
+else if(getUser()){showApp();}
+else{document.getElementById(‘auth’).classList.add(‘show’);}
+},2800);
+});
+
+function saveKey(){
+const k=document.getElementById(‘api-key-input’).value.trim();
+const err=document.getElementById(‘setup-err’);
+if(!k.startsWith(‘AIza’)||k.length<20){err.textContent=‘That does not look right. Google keys start with AIza’;return;}
+localStorage.setItem(‘sol_gkey’,k);
+document.getElementById(‘setup’).classList.remove(‘show’);
+document.getElementById(‘auth’).classList.add(‘show’);
+}
+
+function resetKey(){localStorage.removeItem(‘sol_gkey’);logout();document.getElementById(‘auth’).classList.remove(‘show’);document.getElementById(‘setup’).classList.add(‘show’);closeMenu();}
+
+function toggleAuth(){
+authMode=authMode===‘login’?‘register’:‘login’;
+const btn=document.querySelector(’.a-btn’);
+const sw=document.getElementById(‘asw’);
+document.getElementById(‘auth-err’).textContent=’’;
+if(authMode===‘register’){btn.textContent=‘C R E A T E  A C C O U N T’;sw.innerHTML=‘Have an account? <a onclick="toggleAuth()">Login</a>’;}
+else{btn.textContent=‘A C T I V A T E’;sw.innerHTML=‘No account? <a onclick="toggleAuth()">Register</a>’;}
+}
+
+function handleAuth(){
+const u=document.getElementById(‘uname’).value.trim();
+const p=document.getElementById(‘upass’).value;
+const err=document.getElementById(‘auth-err’);
+if(!u||!p){err.textContent=‘Please fill in both fields.’;return;}
+const users=getUsers();
+if(authMode===‘register’){
+if(users[u]){err.textContent=‘Username taken. Try another.’;return;}
+users[u]=p;saveUsers(users);
+err.style.color=’#2ECC71’;err.textContent=‘Account created. Activating…’;
+setTimeout(()=>{err.style.color=’#E74C3C’;setUser(u);showApp();},700);
+}else{
+if(!users[u]||users[u]!==p){err.textContent=‘Invalid username or password.’;return;}
+setUser(u);showApp();
+}
+}
+
+function showApp(){document.getElementById(‘auth’).classList.remove(‘show’);document.getElementById(‘app’).classList.add(‘show’);updateStatus();}
+
+function logout(){localStorage.removeItem(‘sol_user’);history=[];document.getElementById(‘messages’).innerHTML=’’;showWelcome();document.getElementById(‘app’).classList.remove(‘show’);document.getElementById(‘auth’).classList.add(‘show’);closeMenu();}
+
+function updateStatus(){
+isOnline=navigator.onLine;
+const dot=document.getElementById(‘sdot’);
+const bar=document.getElementById(‘offline-bar’);
+if(isOnline){dot.classList.remove(‘off’);bar.classList.remove(‘show’);}
+else{dot.classList.add(‘off’);bar.classList.add(‘show’);}
+}
+window.addEventListener(‘online’,()=>{updateStatus();addMsg(‘s’,‘Connection restored, Sir. Fully operational.’);});
+window.addEventListener(‘offline’,()=>{updateStatus();addMsg(‘s’,‘Offline mode active, Sir. I remain available for cached functions.’);});
+
+function showMessages(){
+if(welcomeOn){document.getElementById(‘welcome’).style.display=‘none’;document.getElementById(‘messages’).classList.add(‘show’);welcomeOn=false;}
+}
+function showWelcome(){document.getElementById(‘welcome’).style.display=‘flex’;document.getElementById(‘messages’).classList.remove(‘show’);welcomeOn=true;history=[];document.getElementById(‘messages’).innerHTML=’’;}
+function ftime(){return new Date().toLocaleTimeString(‘en-AU’,{hour:‘2-digit’,minute:‘2-digit’});}
+function addMsg(role,text){
+showMessages();
+const c=document.getElementById(‘messages’);
+const d=document.createElement(‘div’);
+d.className=`msg ${role}`;
+d.innerHTML=`<div class="ml">${role==='s'?'SOLOMON':'YOU'}</div><div class="mb">${text}</div><div class="mt">${ftime()}</div>`;
+c.appendChild(d);c.scrollTop=c.scrollHeight;
+history.push({role:role===‘s’?‘model’:‘user’,parts:[{text}]});
+}
+function showTyping(){
+showMessages();
+const c=document.getElementById(‘messages’);
+const d=document.createElement(‘div’);
+d.className=‘msg s’;d.id=‘typing’;
+d.innerHTML=’<div class="ml">SOLOMON</div><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>’;
+c.appendChild(d);c.scrollTop=c.scrollHeight;
+}
+function hideTyping(){const t=document.getElementById(‘typing’);if(t)t.remove();}
+
+async function send(){
+const inp=document.getElementById(‘mi’);
+const text=inp.value.trim();
+if(!text)return;
+inp.value=’’;ar(inp);
+addMsg(‘u’,text);
+const lower=text.toLowerCase().trim();
+if(lower===‘solomon’||lower===‘this too shall pass’){showTyping();setTimeout(()=>{hideTyping();addMsg(‘s’,greet());},900);return;}
+if(!isOnline){addMsg(‘s’,‘Offline, Sir. Reconnect for live responses.’);return;}
+showTyping();
+document.getElementById(‘sbtn’).disabled=true;
+try{
+const key=getKey();
+const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`;
+const contents=history.slice(-10);
+const res=await fetch(url,{
+method:‘POST’,
+headers:{‘Content-Type’:‘application/json’},
+body:JSON.stringify({
+system_instruction:{parts:[{text:SYSTEM}]},
+contents:contents,
+generationConfig:{temperature:0.85,maxOutputTokens:1024}
+})
+});
+const data=await res.json();
+hideTyping();
+if(data.candidates&&data.candidates[0]?.content?.parts[0]?.text){
+addMsg(‘s’,data.candidates[0].content.parts[0].text);
+}else if(data.error){
+addMsg(‘s’,`Sir, an issue occurred: ${data.error.message}`);
+}else{
+addMsg(‘s’,‘Something went wrong, Sir. Please try again.’);
+}
+}catch(e){hideTyping();addMsg(‘s’,‘Could not reach my brain, Sir. Check your connection.’);}
+document.getElementById(‘sbtn’).disabled=false;
+}
+
+function greet(){
+const h=new Date().getHours();
+const t=h<6?‘You are up late, Sir.’:h<12?‘Good morning, Sir.’:h<17?‘Good afternoon, Sir.’:‘Good evening, Sir.’;
+const g=[`${t} SOLOMON is present. What do you need?`,`${t} I am here. What requires my attention?`,`${t} The grand architect is ready. Speak.`,`${t} I have been watching. Everything is in order. What do you need?`];
+return g[Math.floor(Math.random()*g.length)];
+}
+
+function toggleVoice(){
+if(!(‘webkitSpeechRecognition’in window||‘SpeechRecognition’in window)){addMsg(‘s’,‘Voice input is not available in this browser, Sir.’);return;}
+if(isListening){recognition.stop();return;}
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+recognition=new SR();recognition.lang=‘en-AU’;recognition.continuous=false;recognition.interimResults=false;
+recognition.onstart=()=>{isListening=true;document.getElementById(‘vbtn’).classList.add(‘on’);document.getElementById(‘vbtn’).textContent=‘⏹’;};
+recognition.onresult=e=>{document.getElementById(‘mi’).value=e.results[0][0].transcript;ar(document.getElementById(‘mi’));send();};
+recognition.onend=recognition.onerror=()=>{isListening=false;document.getElementById(‘vbtn’).classList.remove(‘on’);document.getElementById(‘vbtn’).textContent=‘🎙’;};
+recognition.start();
+}
+
+function hk(e){if(e.key===‘Enter’&&!e.shiftKey){e.preventDefault();send();}}
+function ar(el){el.style.height=‘auto’;el.style.height=Math.min(el.scrollHeight,110)+‘px’;}
+function openMenu(){document.getElementById(‘ov’).classList.add(‘on’);document.getElementById(‘smenu’).classList.add(‘on’);}
+function closeMenu(){document.getElementById(‘ov’).classList.remove(‘on’);document.getElementById(‘smenu’).classList.remove(‘on’);}
+function clearChat(){history=[];document.getElementById(‘messages’).innerHTML=’’;showWelcome();}
+</script>
+
+</body>
+</html>
