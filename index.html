@@ -312,7 +312,7 @@ function addMsg(role,text){
   d.className='msg '+role;
   d.innerHTML='<div class="ml">'+(role==='s'?'SOLOMON':'YOU')+'</div><div class="mb">'+text+'</div><div class="mt">'+ftime()+'</div>';
   c.appendChild(d);
-  c.scrollTop=c.scrollHeight;
+  setTimeout(function(){c.scrollTop=c.scrollHeight;},50);
   history.push({role:role==='s'?'model':'user',parts:[{text:text}]});
 }
 
@@ -334,8 +334,19 @@ async function send(){
   addMsg('u',text);
   var lower=text.toLowerCase().trim();
   if(lower==='solomon'||lower==='this too shall pass'){
+    history.pop(); // remove wake phrase from history
     showTyping();
-    setTimeout(function(){hideTyping();addMsg('s',greet());},900);
+    setTimeout(function(){
+      hideTyping();
+      var msg=greet();
+      showMessages();
+      var c=document.getElementById('messages');
+      var d=document.createElement('div');
+      d.className='msg s';
+      d.innerHTML='<div class="ml">SOLOMON</div><div class="mb">'+msg+'</div><div class="mt">'+ftime()+'</div>';
+      c.appendChild(d);
+      setTimeout(function(){c.scrollTop=c.scrollHeight;},50);
+    },900);
     return;
   }
   if(!isOnline){addMsg('s','Offline, Sir. Reconnect for live responses.');return;}
@@ -384,9 +395,19 @@ function toggleVoice(){
   recognition=new SR();
   recognition.lang='en-AU';recognition.continuous=false;recognition.interimResults=false;
   recognition.onstart=function(){isListening=true;document.getElementById('vbtn').classList.add('on');document.getElementById('vbtn').textContent='⏹';};
-  recognition.onresult=function(e){document.getElementById('mi').value=e.results[0][0].transcript;ar(document.getElementById('mi'));send();};
+  recognition.onresult=function(e){
+    var t=e.results[0][0].transcript;
+    document.getElementById('mi').value=t;
+    ar(document.getElementById('mi'));
+    setTimeout(function(){send();},200);
+  };
   recognition.onend=function(){isListening=false;document.getElementById('vbtn').classList.remove('on');document.getElementById('vbtn').textContent='🎙';};
-  recognition.onerror=function(){isListening=false;document.getElementById('vbtn').classList.remove('on');document.getElementById('vbtn').textContent='🎙';};
+  recognition.onerror=function(e){
+    isListening=false;
+    document.getElementById('vbtn').classList.remove('on');
+    document.getElementById('vbtn').textContent='🎙';
+    if(e.error==='not-allowed'){addMsg('s','Microphone access denied, Sir. Please allow it in iPhone Settings > Safari > Microphone.');}
+  };
   recognition.start();
 }
 
